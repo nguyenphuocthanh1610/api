@@ -1,0 +1,11 @@
+protected $appends = ['total_count'];
+
+  public function getTotalCountAttribute(){
+	$table = '
+	(select *, sum(type) as count_total from beacons group by no, name) t2
+	';
+  	$beacons = Beacon::leftJoin(\DB::raw($table), 'beacons.no', '=', \DB::raw('t2.no'))
+  	->where('beacons.name', '=', \DB::raw('t2.name'))
+  	->where('beacons.id', $this->id)->first();
+  	return $beacons['count_total'];
+  }
