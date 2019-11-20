@@ -1,11 +1,31 @@
-protected $appends = ['total_count'];
+ $type = ['h265_sd', 'h265_hd', 'h264_hd'];
 
-  public function getTotalCountAttribute(){
-	$table = '
-	(select *, sum(type) as count_total from beacons group by no, name) t2
-	';
-  	$beacons = Beacon::leftJoin(\DB::raw($table), 'beacons.no', '=', \DB::raw('t2.no'))
-  	->where('beacons.name', '=', \DB::raw('t2.name'))
-  	->where('beacons.id', $this->id)->first();
-  	return $beacons['count_total'];
-  }
+    $test_array = [
+        "unique_id"=> "a00001",
+        "h265_sd"=>null,
+        "h265_hd"=> [
+        'a'=>'A',
+        'b'=>'B',
+        'c'=>'C'
+        ],
+        "h264_hd"=> [
+        'a'=>'A',
+        'b'=>'B',
+        'c'=>'C'
+        ],
+    ];
+
+    $test_array += ['output_contents'=> []];
+    foreach($test_array as $key=>$value){
+        if(in_array($key, $type) && $test_array[$key] === null) {
+            $test_array[$key] = 0;
+        }
+        else if(in_array($key, $type) && $test_array[$key] !== null) {
+            $video_type = explode('_', $key);
+            $test_array[$key] += ['video'=>$video_type[0]];
+            $test_array[$key] += ['codec'=>$video_type[1]];
+            $obj = (object) ($test_array[$key]);
+            array_push($test_array['output_contents'], (object) ($test_array[$key]));
+            $test_array[$key] = 1;
+        }
+    }
