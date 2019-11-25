@@ -29,3 +29,5 @@
             $test_array[$key] = 1;
         }
     }
+	
+	ssh -i C:/Users/HP/private_key_file.pem UserName@Hostname
