@@ -31,3 +31,20 @@
     }
 	
 	ssh -i C:/Users/HP/private_key_file.pem UserName@Hostname
+	
+	var url = pm.environment.get('url') + '/api/login';
+var params = '{"email": "xxxx@xxx.com","password": "secret"}'
+pm.sendRequest({
+url: url,
+method: 'POST',
+header: 'Content-Type:application/json',
+body: {
+mode: 'raw',
+raw: params
+}
+}, function (err, res) {
+var result = res.json();
+var token = result.data.token;
+pm.environment.set('token', token);
+
+});
