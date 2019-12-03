@@ -48,3 +48,7 @@ var token = result.data.token;
 pm.environment.set('token', token);
 
 });
+
+
+
+https://stackoverflow.com/questions/56392811/laravel-validation-amount-array-of-fields-not-work
