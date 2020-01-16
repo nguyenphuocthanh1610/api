@@ -1,54 +1,11 @@
- $type = ['h265_sd', 'h265_hd', 'h264_hd'];
+$array1 = [ [ "a"=>"cat", "b" =>"dog"], ["c" => "chicken", "d"=> "duck"]];
+$array2 = [ [ "x"=>"cat", "y" =>"dog"], ["c" => "fruiilt", "d"=> "flower"]];
 
-    $test_array = [
-        "unique_id"=> "a00001",
-        "h265_sd"=>null,
-        "h265_hd"=> [
-        'a'=>'A',
-        'b'=>'B',
-        'c'=>'C'
-        ],
-        "h264_hd"=> [
-        'a'=>'A',
-        'b'=>'B',
-        'c'=>'C'
-        ],
-    ];
-
-    $test_array += ['output_contents'=> []];
-    foreach($test_array as $key=>$value){
-        if(in_array($key, $type) && $test_array[$key] === null) {
-            $test_array[$key] = 0;
-        }
-        else if(in_array($key, $type) && $test_array[$key] !== null) {
-            $video_type = explode('_', $key);
-            $test_array[$key] += ['video'=>$video_type[0]];
-            $test_array[$key] += ['codec'=>$video_type[1]];
-            $obj = (object) ($test_array[$key]);
-            array_push($test_array['output_contents'], (object) ($test_array[$key]));
-            $test_array[$key] = 1;
-        }
-    }
-	
-	ssh -i C:/Users/HP/private_key_file.pem UserName@Hostname
-	
-	var url = pm.environment.get('url') + '/api/login';
-var params = '{"email": "xxxx@xxx.com","password": "secret"}'
-pm.sendRequest({
-url: url,
-method: 'POST',
-header: 'Content-Type:application/json',
-body: {
-mode: 'raw',
-raw: params
+function flip(&$item) {
+    $item = array_flip($item);
 }
-}, function (err, res) {
-var result = res.json();
-var token = result.data.token;
-pm.environment.set('token', token);
+array_walk($array1, "flip");
+array_walk($array2, "flip");
 
-});
-
-
-
-https://stackoverflow.com/questions/56392811/laravel-validation-amount-array-of-fields-not-work
+$result = array_chunk(array_merge(...$array1, ...$array2), 2, true);
+array_walk($result, "flip");
