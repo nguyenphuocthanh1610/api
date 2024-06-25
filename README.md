@@ -1,74 +1,68 @@
-Bước 1: Tạo cấu trúc thư mục dự án
-Giả sử bạn có dự án Python với cấu trúc thư mục sau:
-my-python-app/
-├── app/
-│   └── main.py
-├── Dockerfile
-├── docker-compose.yml
-└── requirements.txt
-Bước 2: Tạo Dockerfile
-Tạo file Dockerfile để định nghĩa môi trường chạy ứng dụng Python:
-# Use the official Python image from the Docker Hub
-FROM python:3.9-slim
+zip lambda_function.zip lambda_function.py
+aws s3 cp lambda_function.zip s3://your-bucket-name/lambda_function.zip
 
-# Set the working directory in the container
-WORKDIR /app
+#lambda.yml
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Role: arn:aws:iam::your-account-id:role/your-lambda-execution-role
+      Code:
+        S3Bucket: your-bucket-name
+        S3Key: lambda_function.zip
+      Runtime: python3.8
+      Timeout: 15
+      MemorySize: 128
 
-# Copy the requirements file into the container
-COPY requirements.txt .
 
-# Install any dependencies
-RUN pip install -r requirements.txt
+#aws cloudformation create-stack --stack-name my-lambda-stack --template-body file://lambda.yml --capabilities CAPABILITY_IAM
+#aws cloudformation describe-stacks --stack-name my-lambda-stack
+------------------
+Tạo Thư mục cho Layer
+mkdir python
+Cài Đặt Thư Viện
+Sử dụng pip để cài đặt các thư viện mà bạn muốn bao gồm trong layer. Chạy lệnh sau trong thư mục python:
+pip install requests -t python
+Đóng Gói Thư Mục Thành Tệp ZIP
+zip -r python_layer.zip python
+Tải Tệp ZIP Lên S3
+aws s3 cp python_layer.zip s3://your-bucket-name/python_layer.zip
+ạo Tệp CloudFormation
+Tạo một tệp CloudFormation, ví dụ layer.yml, với nội dung sau:
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambdaLayer:
+    Type: 'AWS::Lambda::LayerVersion'
+    Properties:
+      LayerName: 'MyPythonLayer'
+      Description: 'A Lambda layer with Python libraries'
+      Content:
+        S3Bucket: your-bucket-name
+        S3Key: python_layer.zip
+      CompatibleRuntimes:
+        - python3.8
+        - python3.9
+        - python3.10
+      LicenseInfo: 'MIT'
+Triển Khai CloudFormation Stack
+aws cloudformation create-stack --stack-name my-layer-stack --template-body file://layer.yml --capabilities CAPABILITY_NAMED_IAM
+Trong tệp CloudFormation của Lambda function (lambda.yml), thêm thuộc tính Layers vào phần Properties của Lambda function:
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Role: arn:aws:iam::your-account-id:role/your-lambda-execution-role
+      Code:
+        S3Bucket: your-bucket-name
+        S3Key: lambda_function.zip
+      Runtime: python3.8
+      Timeout: 15
+      MemorySize: 128
+      Layers:
+        - !Ref MyLambdaLayer
 
-# Copy the rest of the application code
-COPY . .
-
-# Command to run the application
-CMD ["python", "main.py"]
-Bước 3: Tạo docker-compose.yml
-Tạo file docker-compose.yml để định nghĩa dịch vụ và cài đặt đồng bộ hóa mã nguồn:
-version: '3'
-services:
-  app:
-    build: .
-    volumes:
-      - ./app:/app
-    ports:
-      - "5000:5000"
-    command: python /app/main.py
-Bước 4: Tạo requirements.txt
-Tạo file requirements.txt để liệt kê các thư viện cần thiết cho ứng dụng của bạn:
-watchdog
-Bước 5: Tạo script theo dõi thay đổi
-Tạo script Python sử dụng watchdog để theo dõi các thay đổi trong mã nguồn và tự động rebuild container khi cần thiết.
-
-Tạo file watcher.py trong thư mục dự án:
-import os
-import time
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-
-class ChangeHandler(FileSystemEventHandler):
-    def on_any_event(self, event):
-        if event.event_type in ('created', 'modified', 'deleted'):
-            os.system('docker-compose up --build -d')
-
-if __name__ == "__main__":
-    path = "./app"
-    event_handler = ChangeHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path, recursive=True)
-    observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-Bước 6: Chạy Docker Compose
-Mở terminal và điều hướng đến thư mục dự án của bạn, sau đó chạy lệnh sau để khởi động dịch vụ Docker:
-
-docker-compose up --build -d
-Bước 7: Chạy script theo dõi thay đổi
-Trong một terminal khác, điều hướng đến thư mục dự án và chạy script watcher.py:
-python watcher.py
+aws cloudformation update-stack --stack-name my-lambda-stack --template-body file://lambda.yml --capabilities CAPABILITY_IAM
