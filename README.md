@@ -1,3 +1,35 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: MyLambdaFunction
+      Handler: index.handler
+      Role: arn:aws:iam::123456789012:role/service-role/MyLambdaRole
+      Runtime: python3.8
+      Code:
+        S3Bucket: my-bucket
+        S3Key: my-lambda-code.zip
+
+  MyCloudWatchEventRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: Schedule rule for triggering Lambda Function daily
+      ScheduleExpression: cron(0 7 * * ? *)  # Example: Trigger daily at 7:00 AM UTC
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt MyLambdaFunction.Arn
+          Id: MyLambdaFunctionTarget
+
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt MyLambdaFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt MyCloudWatchEventRule.Arn
+
 AWSTemplateFormatVersion: '2010-09-09'
 Parameters:
   Environment:
