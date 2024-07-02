@@ -1,3 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  Environment:
+    Type: String
+    Description: The environment to deploy (e.g., local, production)
+    AllowedValues:
+      - local
+      - production
+    Default: local
+
+Conditions:
+  IsLocal: !Equals [ !Ref Environment, local ]
+  IsProduction: !Equals [ !Ref Environment, production ]
+
+Resources:
+  MyLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties: 
+      FunctionName: MyLambdaFunction
+      Handler: index.handler
+      Role: arn:aws:iam::123456789012:role/service-role/MyLambdaRole
+      Runtime: python3.8
+      Code:
+        S3Bucket: my-bucket
+        S3Key: my-lambda-code.zip
+      Environment: 
+        Variables: 
+          CLIENT_ID: 
+            Fn::If:
+              - IsLocal
+              - local-client-id
+              - production-client-id
+          CLIENT_SECRET: 
+            Fn::If:
+              - IsLocal
+              - local-client-secret
+              - production-client-secret
+          OTHER_ENV_VAR: 
+            Fn::If:
+              - IsLocal
+              - local-value
+              - production-value
+
+
 Resources:
   MyBucket:
     Type: AWS::S3::Bucket
