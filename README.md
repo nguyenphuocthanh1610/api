@@ -1,3 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to configure VPC for Lambda in different environments with two subnets.
+
+Parameters:
+  Environment:
+    Description: The environment to deploy (local, staging, production)
+    Type: String
+    AllowedValues:
+      - local
+      - staging
+      - production
+    Default: local
+
+  VpcIdLocal:
+    Description: VPC ID for local environment
+    Type: String
+    Default: vpc-xxxxxxxxxx
+
+  SubnetIdLocal1:
+    Description: First Subnet ID for local environment
+    Type: String
+    Default: subnet-xxxxxxxxxx
+
+  SubnetIdLocal2:
+    Description: Second Subnet ID for local environment
+    Type: String
+    Default: subnet-yyyyyyyyyy
+
+  SecurityGroupIdLocal:
+    Description: Security Group ID for local environment
+    Type: String
+    Default: sg-xxxxxxxxxx
+
+  VpcIdStaging:
+    Description: VPC ID for staging environment
+    Type: String
+    Default: vpc-yyyyyyyyyy
+
+  SubnetIdStaging1:
+    Description: First Subnet ID for staging environment
+    Type: String
+    Default: subnet-zzzzzzzzzz
+
+  SubnetIdStaging2:
+    Description: Second Subnet ID for staging environment
+    Type: String
+    Default: subnet-aaaaaaaaaa
+
+  SecurityGroupIdStaging:
+    Description: Security Group ID for staging environment
+    Type: String
+    Default: sg-yyyyyyyyyy
+
+  VpcIdProduction:
+    Description: VPC ID for production environment
+    Type: String
+    Default: vpc-zzzzzzzzzz
+
+  SubnetIdProduction1:
+    Description: First Subnet ID for production environment
+    Type: String
+    Default: subnet-bbbbbbbbbb
+
+  SubnetIdProduction2:
+    Description: Second Subnet ID for production environment
+    Type: String
+    Default: subnet-cccccccccc
+
+  SecurityGroupIdProduction:
+    Description: Security Group ID for production environment
+    Type: String
+    Default: sg-zzzzzzzzzz
+
+Conditions:
+  IsLocal: !Equals [!Ref Environment, local]
+  IsStaging: !Equals [!Ref Environment, staging]
+  IsProduction: !Equals [!Ref Environment, production]
+
+Resources:
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties: 
+      FunctionName: MyFunction
+      Handler: index.handler
+      Role: arn:aws:iam::account-id:role/lambda-execution-role
+      Code:
+        S3Bucket: my-lambda-functions
+        S3Key: function.zip
+      Runtime: nodejs14.x
+      VpcConfig:
+        SecurityGroupIds:
+          - !If 
+            - IsLocal
+            - !Ref SecurityGroupIdLocal
+            - !If 
+              - IsStaging
+              - !Ref SecurityGroupIdStaging
+              - !Ref SecurityGroupIdProduction
+        SubnetIds:
+          - !If 
+            - IsLocal
+            - !Ref SubnetIdLocal1
+            - !If 
+              - IsStaging
+              - !Ref SubnetIdStaging1
+              - !Ref SubnetIdProduction1
+          - !If 
+            - IsLocal
+            - !Ref SubnetIdLocal2
+            - !If 
+              - IsStaging
+              - !Ref SubnetIdStaging2
+              - !Ref SubnetIdProduction2
+
+Outputs:
+  LambdaFunctionName:
+    Description: The name of the Lambda function
+    Value: !Ref MyLambdaFunction
 
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
