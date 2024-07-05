@@ -1,3 +1,26 @@
+import pandas as pd
+
+# Tạo một DataFrame mẫu
+data = {
+    'A': [1, 2, 3],
+    'B': [4, 5, 6],
+    'C': [7, 8, 9]
+}
+
+df = pd.DataFrame(data)
+print("DataFrame ban đầu:")
+print(df)
+# Xoay DataFrame
+df_transposed = df.transpose()
+print("DataFrame sau khi xoay:")
+print(df_transposed)
+
+df_transposed = df.T
+print("DataFrame sau khi xoay:")
+print(df_transposed)
+
+
+
 AWSTemplateFormatVersion: '2010-09-09'
 Description: CloudFormation template to configure VPC for Lambda in different environments with two subnets.
 
