@@ -1,3 +1,29 @@
+
+import pandas as pd
+
+# Tạo DataFrame từ dữ liệu cho trước
+data = {
+    'a': [1, 4, 7],
+    'b': [2, 5, 8],
+    'c': [3, 6, 9]
+}
+index = [
+    '2024-01-01T00:00:00',
+    '2024-01-01T00:30:00',
+    '2024-01-01T01:00:00'
+]
+df = pd.DataFrame(data, index=index)
+
+# Chuyển đổi cột thời gian thành các cột riêng biệt
+df_transposed = df.T
+df_transposed.columns = ['0:00', '00:30', '01:00']
+
+# Xuất ra file CSV
+df_transposed.to_csv('output.csv', index=False)
+
+print(df_transposed)
+
+
 import pandas as pd
 
 # Tạo một DataFrame mẫu
