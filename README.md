@@ -1,3 +1,42 @@
+import boto3
+from boto3.session import Session
+
+# Thông tin role cần assume
+role_arn = 'arn:aws:iam::123456789012:role/YourRoleName'
+role_session_name = 'YourSessionName'
+
+# Tạo client cho STS (Security Token Service)
+sts_client = boto3.client('sts')
+
+# Assume role
+assumed_role_object = sts_client.assume_role(
+    RoleArn=role_arn,
+    RoleSessionName=role_session_name
+)
+
+# Lấy các thông tin về temporary credentials
+credentials = assumed_role_object['Credentials']
+
+# Tạo một session mới với các temporary credentials
+session = Session(
+    aws_access_key_id=credentials['AccessKeyId'],
+    aws_secret_access_key=credentials['SecretAccessKey'],
+    aws_session_token=credentials['SessionToken']
+)
+
+# Tạo S3 client với session mới
+s3_client = session.client('s3')
+
+# Đường dẫn file bạn muốn upload
+file_path = 'path/to/your/file.txt'
+# Tên bucket và key (tên file trong S3)
+bucket_name = 'your-bucket-name'
+s3_key = 'your-file-name.txt'
+
+# Upload file lên S3
+s3_client.upload_file(file_path, bucket_name, s3_key)
+
+print(f"File {file_path} đã được upload lên {bucket_name}/{s3_key}")
 
 import pandas as pd
 
