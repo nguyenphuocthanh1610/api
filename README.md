@@ -1,3 +1,33 @@
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Resources:
+  MomentLayer:
+    Type: 'AWS::Serverless::LayerVersion'
+    Properties:
+      LayerName: moment-layer
+      Description: A Lambda layer containing the moment.js library
+      ContentUri: layer/
+      CompatibleRuntimes:
+        - nodejs14.x
+        - nodejs18.x
+        - nodejs20.x
+      LicenseInfo: 'MIT'
+
+  LambdaFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs18.x
+      CodeUri: lambda/
+      Layers:
+        - !Ref MomentLayer
+      Role: arn:aws:iam::123456789012:role/lambda-role
+      Description: Lambda function using moment.js from a layer
+      MemorySize: 128
+      Timeout: 100
+
 sam package \
     --template-file template.yaml \
     --output-template-file packaged.yaml \
