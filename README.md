@@ -1,4 +1,12 @@
-
+sam package \
+    --template-file template.yaml \
+    --output-template-file packaged.yaml \
+    --s3-bucket <YOUR_S3_BUCKET_NAME>
+sam deploy \
+    --template-file packaged.yaml \
+    --stack-name my-sam-app \
+    --capabilities CAPABILITY_IAM
+    
 Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
