@@ -1,3 +1,33 @@
+import paramiko
+import os
+
+def lambda_handler(event, context):
+    # Đường dẫn tệp CSV cần tải lên
+    local_file_path = "/tmp/my_file.csv"
+
+    # Đọc hoặc tạo tệp CSV ở đây
+    with open(local_file_path, 'w') as file:
+        file.write("col1,col2,col3\nval1,val2,val3\n")
+
+    # Cấu hình kết nối SFTP
+    hostname = "your.server.com"
+    port = 22
+    username = "your_username"
+    password = "your_password"
+    remote_file_path = "/remote/path/to/my_file.csv"
+
+    # Kết nối và tải lên tệp
+    try:
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=username, password=password)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        sftp.put(local_file_path, remote_file_path)
+        sftp.close()
+        transport.close()
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "error": str(e)}
 
 
 AWSTemplateFormatVersion: '2010-09-09'
