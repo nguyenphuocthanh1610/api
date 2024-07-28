@@ -1,3 +1,39 @@
+
+import boto3
+import paramiko
+import os
+
+def lambda_handler(event, context):
+    # Thông tin về bucket và key của file CSV trong S3
+    bucket_name = event['bucket']
+    object_key = event['key']
+    local_file_path = '/tmp/' + os.path.basename(object_key)
+
+    # Tải file từ S3
+    s3 = boto3.client('s3')
+    s3.download_file(bucket_name, object_key, local_file_path)
+
+    # Cấu hình kết nối SSH
+    hostname = "your.ec2.public.ip"
+    port = 22
+    username = "your_ec2_username"
+    key_path = "/path/to/your/private/key.pem"
+    remote_file_path = "/remote/path/to/" + os.path.basename(object_key)
+
+    # Kết nối và tải lên tệp
+    try:
+        key = paramiko.RSAKey.from_private_key_file(key_path)
+        transport = paramiko.Transport((hostname, port))
+        transport.connect(username=username, pkey=key)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        sftp.put(local_file_path, remote_file_path)
+        sftp.close()
+        transport.close()
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error", "error": str(e)}
+
 import boto3
 import paramiko
 import os
