@@ -1,3 +1,42 @@
+// Import các thư viện cần thiết từ AWS SDK
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { fromIni } = require('@aws-sdk/credential-providers');
+const fs = require('fs');
+
+// Cấu hình client S3
+const s3Client = new S3Client({
+  region: 'your-region', // Ví dụ: 'us-east-1'
+  credentials: fromIni({ profile: 'your-profile' }), // Đọc từ file config (~/.aws/credentials)
+});
+
+// Định nghĩa thông tin cho object cần upload
+const bucketName = 'your-bucket-name';
+const keyName = 'your-object-key';
+const filePath = 'path/to/your/file.ext';
+
+// Đọc file từ hệ thống
+const fileStream = fs.createReadStream(filePath);
+
+// Định nghĩa lệnh PutObjectCommand
+const uploadParams = {
+  Bucket: bucketName,
+  Key: keyName,
+  Body: fileStream,
+  ContentType: 'your-content-type', // Ví dụ: 'image/jpeg'
+};
+
+// Hàm upload object lên S3
+const run = async () => {
+  try {
+    const data = await s3Client.send(new PutObjectCommand(uploadParams));
+    console.log('Upload thành công', data);
+  } catch (err) {
+    console.error('Upload thất bại', err);
+  }
+};
+
+// Chạy hàm upload
+run();
 
 import boto3
 import paramiko
