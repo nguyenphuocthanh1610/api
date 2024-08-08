@@ -1,4 +1,45 @@
 
+
+import boto3
+from smb.SMBConnection import SMBConnection
+
+# Hàm Lambda chính
+def lambda_handler(event, context):
+    # Thông tin S3
+    s3_bucket = 'your-s3-bucket'
+    s3_key = 'path/to/your/file.csv'
+    
+    # Thông tin SMB
+    smb_user = 'your-smb-username'
+    smb_password = 'your-smb-password'
+    smb_server_name = 'your-smb-server-name'
+    smb_ip = 'your-smb-server-ip'
+    smb_share_name = 'your-smb-share'
+    smb_remote_path = 'path/on/smb/server/file.csv'
+    
+    # Kết nối tới S3 và tải file
+    s3 = boto3.client('s3')
+    s3_response = s3.get_object(Bucket=s3_bucket, Key=s3_key)
+    csv_content = s3_response['Body'].read()
+    
+    # Kết nối tới server SMB
+    conn = SMBConnection(smb_user, smb_password, 'lambda', smb_server_name, use_ntlm_v2=True)
+    assert conn.connect(smb_ip, 139)
+    
+    # Upload file lên server SMB
+    with open('/tmp/tempfile.csv', 'wb') as temp_file:
+        temp_file.write(csv_content)
+    
+    with open('/tmp/tempfile.csv', 'rb') as temp_file:
+        conn.storeFile(smb_share_name, smb_remote_path, temp_file)
+    
+    return {
+        'statusCode': 200,
+        'body': 'File uploaded successfully'
+    }
+
+# Đảm bảo rằng bạn đã cấu hình quyền IAM cho Lambda để truy cập S3 và kiểm tra kết nối mạng tới server SMB.
+
 const { DateTime } = require('luxon');
 
 exports.handler = async (event) => {
