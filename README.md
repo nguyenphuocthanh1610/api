@@ -1,3 +1,30 @@
+
+const { DateTime } = require('luxon');
+
+exports.handler = async (event) => {
+    // Chuỗi ngày giờ đầu vào
+    const inputDateTimeString = '2024-07-31 12:34:56'; // Chuỗi ngày giờ bất kỳ
+    const inputTimeZone = 'Asia/Ho_Chi_Minh'; // Múi giờ của chuỗi ngày giờ đầu vào
+
+    // Chuyển đổi chuỗi ngày giờ sang đối tượng DateTime trong múi giờ của chuỗi
+    const dateTime = DateTime.fromFormat(inputDateTimeString, 'yyyy-MM-dd HH:mm:ss', { zone: inputTimeZone });
+
+    // Chuyển đổi ngày giờ sang UTC và định dạng lại
+    const dateTimeInUTC = dateTime.toUTC().toISO();
+
+    console.log("Chuỗi ngày giờ đầu vào:", inputDateTimeString);
+    console.log("Múi giờ đầu vào:", inputTimeZone);
+    console.log("Ngày giờ chuyển đổi sang UTC:", dateTimeInUTC);
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            message: "Ngày giờ đã được chuyển đổi sang UTC",
+            dateTimeInUTC: dateTimeInUTC,
+        }),
+    };
+};
+
 {
   "Version": "2012-10-17",
   "Statement": [
