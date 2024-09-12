@@ -1,20 +1,35 @@
-const { STSClient, AssumeRoleCommand } = require("@aws-sdk/client-sts");
+from smb.SMBConnection import SMBConnection
 
-const stsClient = new STSClient();
+def check_file_exists(smb_server, smb_share, directory, file_name, username, password, domain='', use_ntlm_v2=True):
+    # Kết nối tới SMB server
+    conn = SMBConnection(username, password, 'my_client', smb_server, domain=domain, use_ntlm_v2=use_ntlm_v2)
+    conn.connect(smb_server, 139)
 
-function assumeRole() {
-    const command = new AssumeRoleCommand({
-        RoleArn: "arn:aws:iam::123456789012:role/ExampleRole",
-        RoleSessionName: "example-session"
-    });
+    try:
+        # List tất cả các file trong thư mục
+        files = conn.listPath(smb_share, directory)
 
-    stsClient.send(command)
-        .then((response) => {
-            console.log("Assume Role Successful:", response);
-        })
-        .catch((error) => {
-            console.error("Error assuming role:", error);
-        });
-}
+        # Kiểm tra sự tồn tại của file
+        for file in files:
+            if file.filename == file_name:
+                print(f"File '{file_name}' exists in the path '{directory}'")
+                return True
 
-assumeRole();
+        print(f"File '{file_name}' does not exist in the path '{directory}'")
+        return False
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+    finally:
+        # Đóng kết nối SMB
+        conn.close()
+
+# Sử dụng hàm kiểm tra
+smb_server = 'your_smb_server'   # Thay bằng địa chỉ server của bạn
+smb_share = 'your_share_name'    # Thay bằng tên share của bạn (vd: test)
+directory = 'csv/2024'           # Thư mục chứa file abc.csv
+file_name = 'abc.csv'            # Tên file bạn muốn kiểm tra
+username = 'your_username'       # Tên đăng nhập SMB
+password = 'your_password'       # Mật khẩu SMB
+
+file_exists = check_file_exists(smb_server, smb_share, directory, file_name, username, password)
